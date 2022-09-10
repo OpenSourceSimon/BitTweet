@@ -17,5 +17,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 * [Tweepy](https://www.tweepy.org/) for making it easy to interact with the Twitter API
 
 ## To do
-- [ ] BUG: Start price isn't edited after Tweet
+- [x] BUG: Start price isn't edited after Tweet
 - [ ] Implement Binance API
