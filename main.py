@@ -66,7 +66,7 @@ while True:
         api = tweepy.API(auth)
         api.update_status(
             f"Bitcoin price just went up by ${price - start_price}!" + " Current price is: $" + str(
-                price) + "#bitcoin #btc")
+                price) + " #bitcoin #btc")
         print("\033[94m" + "Tweeted: Bitcoin price just went up by $" + str(
             price - start_price) + "!" + " Current price is: $" + str(
             price) + " #bitcoin #btc \033[0m")
@@ -78,7 +78,7 @@ while True:
         api = tweepy.API(auth)
         api.update_status(
             f"Bitcoin price just went down by ${start_price - price}!" + " Current price is: $" + str(
-                price) + "#bitcoin #btc")
+                price) + " #bitcoin #btc")
         print("\033[94m" + "Tweeted: Bitcoin price just went down by $" + str(
             start_price - price) + "!" + " Current price is: $" + str(
             price) + " #bitcoin #btc \033[0m")
