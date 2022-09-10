@@ -70,6 +70,7 @@ while True:
         print("\033[94m" + "Tweeted: Bitcoin price just went up by $" + str(
             price - start_price) + "!" + " Current price is: $" + str(
             price) + " #bitcoin #btc \033[0m")
+        start_price = price
     elif price < (start_price - tweet_by_price_change):
         # Print the price and time to the console in red
         print("\033[91m" + "Bitcoin price changed! Bitcoin price is: $" + str(price) + "\033[0m")
@@ -82,5 +83,6 @@ while True:
         print("\033[94m" + "Tweeted: Bitcoin price just went down by $" + str(
             start_price - price) + "!" + " Current price is: $" + str(
             price) + " #bitcoin #btc \033[0m")
+        start_price = price
 
     sleep(sleep_time)
