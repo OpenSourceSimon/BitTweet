@@ -65,10 +65,10 @@ while True:
         auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
         api = tweepy.API(auth)
         api.update_status(
-            f"Bitcoin price just went up by ${tweet_by_price_change}!" + " Current price is: $" + str(
-                price) + "#bitcoin #btc")
+            f"Bitcoin price just went up by ${price - start_price}!" + " Current price is: $" + str(
+                price) + " #bitcoin #btc")
         print("\033[94m" + "Tweeted: Bitcoin price just went up by $" + str(
-            tweet_by_price_change) + "!" + " Current price is: $" + str(
+            price - start_price) + "!" + " Current price is: $" + str(
             price) + " #bitcoin #btc \033[0m")
     elif price < (start_price - tweet_by_price_change):
         # Print the price and time to the console in red
@@ -77,10 +77,10 @@ while True:
         auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
         api = tweepy.API(auth)
         api.update_status(
-            f"Bitcoin price just went down by ${tweet_by_price_change}!" + " Current price is: $" + str(
-                price) + "#bitcoin #btc")
+            f"Bitcoin price just went down by ${start_price - price}!" + " Current price is: $" + str(
+                price) + " #bitcoin #btc")
         print("\033[94m" + "Tweeted: Bitcoin price just went down by $" + str(
-            tweet_by_price_change) + "!" + " Current price is: $" + str(
+            start_price - price) + "!" + " Current price is: $" + str(
             price) + " #bitcoin #btc \033[0m")
 
     sleep(sleep_time)
