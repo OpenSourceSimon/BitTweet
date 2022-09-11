@@ -13,8 +13,10 @@ tweet_by_price_change: int = 100
 # Set time for good morning tweet in 24-hour format
 time = "09:00"
 
+# Which coin to track. For example: BTCUSDT or ETHUSDT
+coin = "BTCUSDT"
 # The bitcoin API URL to get the current price in USD
-bitcoin_api_url: str = "https://api.coindesk.com/v1/bpi/currentprice.json"
+bitcoin_api_url: str = f"https://api.binance.com/api/v3/ticker/price?symbol={coin}"
 
 # Consumer keys and access tokens, used for OAuth
 CONSUMER_KEY = 'XXXXXXXXXXXXXXXXXXXXXX'
@@ -24,7 +26,7 @@ ACCESS_SECRET = 'XXXXXXXXXXXXXXXXXXXXXX'
 
 response = requests.get(bitcoin_api_url)
 data = response.json()
-start_price = data["bpi"]["USD"]["rate"]
+start_price = data["price"]
 start_price = int(float(start_price.replace(',', '')))
 print("\033[95m" + "Started the bot! Starting price is: $" + str(start_price) + " Press CTRL+C to exit \033[0m")
 print("\033[95m" + "The bot will check the bitcoin price every " + str(sleep_time) + " seconds \033[0m")
@@ -44,7 +46,7 @@ def job():
 while True:
     response = requests.get(bitcoin_api_url)
     data = response.json()
-    price = data["bpi"]["USD"]["rate"]
+    price = data["price"]
     # Format price to int and remove comma and decimal
     price = int(float(price.replace(',', '')))
     # Get current time and format it
@@ -58,28 +60,34 @@ while True:
 
     schedule.every().day.at(time).do(job)
 
-    if price > (start_price + tweet_by_price_change):
+    if price - start_price >= tweet_by_price_change:
         # Print the price and time to the console in blue
         print("\033[94m" + "Bitcoin price changed! Bitcoin price is: $" + str(price) + "\033[0m")
         auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
         auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
         api = tweepy.API(auth)
-        api.update_status(
-            f"Bitcoin price just went up by ${price - start_price}!" + " Current price is: $" + str(
-                price) + " #bitcoin #btc")
+        try:
+            api.update_status(
+                f"Bitcoin price just went up by ${price - start_price}!" + " Current price is: $" + str(
+                    price) + " #bitcoin #btc")
+        except tweepy.TweepError as e:
+            print(e.reason)
         print("\033[94m" + "Tweeted: Bitcoin price just went up by $" + str(
             price - start_price) + "!" + " Current price is: $" + str(
             price) + " #bitcoin #btc \033[0m")
         start_price = price
-    elif price < (start_price - tweet_by_price_change):
+    elif start_price - price >= tweet_by_price_change:
         # Print the price and time to the console in red
         print("\033[91m" + "Bitcoin price changed! Bitcoin price is: $" + str(price) + "\033[0m")
         auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
         auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
         api = tweepy.API(auth)
-        api.update_status(
-            f"Bitcoin price just went down by ${start_price - price}!" + " Current price is: $" + str(
-                price) + " #bitcoin #btc")
+        try:
+            api.update_status(
+                f"Bitcoin price just went down by ${start_price - price}!" + " Current price is: $" + str(
+                    price) + " #bitcoin #btc")
+        except tweepy.TweepError as e:
+            print(e.reason)
         print("\033[94m" + "Tweeted: Bitcoin price just went down by $" + str(
             start_price - price) + "!" + " Current price is: $" + str(
             price) + " #bitcoin #btc \033[0m")

@@ -18,4 +18,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## To do
 - [x] BUG: Start price isn't edited after Tweet
-- [ ] Implement Binance API
+- [x] Implement Binance API
