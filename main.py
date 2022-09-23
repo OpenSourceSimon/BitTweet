@@ -15,7 +15,7 @@ tweet_by_price_change: int = 100
 time = "09:00"
 
 # Which coin to track. For example: BTCUSDT or ETHUSDT. !!Don't change the 0 in the end!! It's the starting price.
-dictcoins = {'BTCUSDT': 0, 'ETHUSDT': 0, }
+dictcoins = {'BTCUSDT': 0, 'ETHUSDT': 0, 'ET': 0}
 
 # Consumer keys and access tokens, used for OAuth
 CONSUMER_KEY = 'XXXXXXXXXXXXXXXXXXXXXX'
@@ -26,13 +26,18 @@ ACCESS_SECRET = 'XXXXXXXXXXXXXXXXXXXXXX'
 # For in coin in dictcoins do:
 for coin in dictcoins:
     # Get current price
-    price = requests.get('https://api.binance.com/api/v3/ticker/price?symbol=' + coin).json()['price']
-    # Set current price as old price
-    dict = {coin: price}
-    dictcoins.update(dict)
+    try:
+        price = requests.get('https://api.binance.com/api/v3/ticker/price?symbol=' + coin).json()['price']
+        # Set current price as old price
+        dict = {coin: price}
+        dictcoins.update(dict)
+    except KeyError:
+        print("\033[91m" + "Error: Coin not found! \033[0m")
+        continue
+
     # Print starting the bot with the current price
     print("\033[95m" + "Started the bot for " + coin + " with price: $" + str(
-        dictcoins[coin]) + "Press CTRL+C to exit" + "\033[0m")
+        dictcoins[coin]) + " Press CTRL+C to exit" + "\033[0m")
 
 print("\033[95m" + "The bot will check the prices every " + str(sleep_time) + " seconds \033[0m")
 print("\033[95m" + f"The bot will tweet if the price changes by ${tweet_by_price_change} or more \033[0m")
@@ -52,10 +57,14 @@ schedule.every().day.at(time).do(job)
 while True:
     print("\033[94m" + "Checking prices... \033[0m")
     for coin in dictcoins:
-        bitcoin_api_url: str = f"https://api.binance.com/api/v3/ticker/price?symbol={coin}"
-        response = requests.get(bitcoin_api_url)
-        data = response.json()
-        price = data["price"]
+        try:
+            price = requests.get('https://api.binance.com/api/v3/ticker/price?symbol=' + coin).json()['price']
+            # Set current price as old price
+            dict = {coin: price}
+            dictcoins.update(dict)
+        except KeyError:
+            print("\033[91m" + "Error: Coin not found! \033[0m")
+            continue
         now = datetime.datetime.now()
         now = now.strftime("%Y-%m-%d %H:%M:%S")
         difference = float(price) - float(dictcoins[coin])
