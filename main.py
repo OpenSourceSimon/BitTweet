@@ -15,7 +15,12 @@ tweet_by_price_change: int = 100
 time = "09:00"
 
 # Which coin to track. For example: BTCUSDT or ETHUSDT. !!Don't change the 0 in the end!! It's the starting price.
-dictcoins = {'BTCUSDT': 0, 'ETHUSDT': 0, 'ET': 0}
+dictcoins = {'BTCUSDT': 0, 'ETHUSDT': 0, 'BNBUSDT': 0, 'NEOUSDT': 0, 'BCCUSDT': 0, 'LTCUSDT': 0, 'ADAUSDT': 0,
+             'EOSUSDT': 0, 'HOTUSDT': 0, 'OMGUSDT': 0, 'BNTUSDT': 0, 'GMTUSDT': 0, 'DASHUSDT': 0, 'ZECUSDT': 0,
+             'ONGUSDT': 0, 'NULSUSDT': 0, 'BTTCUSDT': 0, 'LOKAUSDT': 0, 'XNOUSDT': 0, 'TUSDT': 0, 'NBTUSDT': 0,
+             'KDAUSDT': 0, 'STEEMUSDT': 0, 'NEXOUSDT': 0, 'BIFIUSDT': 0, 'ALPINEUSDT': 0,
+             'ASTRUSDT': 0, 'WOOUSDT': 0, 'STGUSDT': 0, 'EPXUSDT': 0, 'ENJUSDT': 0, 'CELRUSDT': 0, 'FETUSDT': 0,
+             'BATUSDT': 0, 'XMRUSDT': 0, 'LINKUSDT': 0}
 
 # Consumer keys and access tokens, used for OAuth
 CONSUMER_KEY = 'XXXXXXXXXXXXXXXXXXXXXX'
@@ -42,7 +47,10 @@ for coin in dictcoins:
 print("\033[95m" + "The bot will check the prices every " + str(sleep_time) + " seconds \033[0m")
 print("\033[95m" + f"The bot will tweet if the price changes by ${tweet_by_price_change} or more \033[0m")
 print("\033[95m" + "The bot will tweet a good morning tweet at " + time + " \033[0m")
+# Print a line in the console
+print("\033[95m" + "-------------------------------------------------------------------------------- \033[0m")
 
+sleep(sleep_time)
 
 # Send a good morning tweet at 9:00
 def job():
@@ -59,9 +67,6 @@ while True:
     for coin in dictcoins:
         try:
             price = requests.get('https://api.binance.com/api/v3/ticker/price?symbol=' + coin).json()['price']
-            # Set current price as old price
-            dict = {coin: price}
-            dictcoins.update(dict)
         except KeyError:
             print("\033[91m" + "Error: Coin not found! \033[0m")
             continue
@@ -74,16 +79,19 @@ while True:
             auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
             auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
             api = tweepy.API(auth)
-            api.update_status(f"{coin} price has increased by ${difference}! Current price: ${price}")
-            print("\033[92m" + f"{coin} price has increased by ${difference}! Current price: ${price} \033[0m")
+            # Tweet the price change and round it to 2 decimals
+            api.update_status(f"{coin} price has increased by ${round(difference, 2)}! Current price: ${round(float(price), 2)}")
+            print("\033[94m" + f"{coin} price has increased by ${difference}! Current price: ${price} \033[0m")
             dict = {coin: price}
             dictcoins.update(dict)
         elif difference <= -tweet_by_price_change:
             auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
             auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
             api = tweepy.API(auth)
-            api.update_status(f"{coin} price has decreased by ${difference}! Current price: ${price}")
-            print("\033[92m" + f"{coin} price has decreased by ${difference}! Current price: ${price} \033[0m")
+            # Remove - from difference
+            difference = difference * -1
+            api.update_status(f"{coin} price has decreased by ${round(difference, 2)}! Current price: ${round(float(price), 2)}")
+            print("\033[94m" + f"{coin} price has decreased by ${round(difference)}! Current price: ${round(price)}  \033[0m")
             dict = {coin: price}
             dictcoins.update(dict)
 
