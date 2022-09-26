@@ -9,7 +9,7 @@ import tweepy
 sleep_time: int = 10
 
 # Tweet by price change value
-tweet_by_price_change: int = 1
+tweet_by_price_change: int = 100
 
 # Set time for good morning tweet in 24-hour format
 time = "09:00"
