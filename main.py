@@ -9,7 +9,7 @@ import tweepy
 sleep_time: int = 10
 
 # Tweet by price change value
-tweet_by_price_change: int = 100
+tweet_by_price_change: int = 1
 
 # Set time for good morning tweet in 24-hour format
 time = "09:00"
@@ -72,7 +72,7 @@ while True:
             continue
         now = datetime.datetime.now()
         now = now.strftime("%Y-%m-%d %H:%M:%S")
-        difference = float(price) - float(dictcoins[coin])
+        difference = float(int(float(price)) - int(float(dictcoins[coin])))
         print(
             "\033[92m" + f"{now} - {coin} - Current price: ${price} - Old price: ${dictcoins[coin]} - Difference: ${difference} \033[0m")
         if difference >= tweet_by_price_change:
@@ -89,9 +89,9 @@ while True:
             auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
             api = tweepy.API(auth)
             # Remove - from difference
-            difference = difference * -1
+            difference = float(difference * -1)
             api.update_status(f"{coin} price has decreased by ${round(difference, 2)}! Current price: ${round(float(price), 2)}")
-            print("\033[94m" + f"{coin} price has decreased by ${round(difference)}! Current price: ${round(price)}  \033[0m")
+            print("\033[94m" + f"{coin} price has decreased by ${difference}! Current price: ${price}  \033[0m")
             dict = {coin: price}
             dictcoins.update(dict)
 
