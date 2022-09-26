@@ -52,6 +52,7 @@ print("\033[95m" + "------------------------------------------------------------
 
 sleep(sleep_time)
 
+
 # Send a good morning tweet at 9:00
 def job():
     auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
@@ -74,25 +75,39 @@ while True:
         now = now.strftime("%Y-%m-%d %H:%M:%S")
         difference = float(int(float(price)) - int(float(dictcoins[coin])))
         print(
-            "\033[92m" + f"{now} - {coin} - Current price: ${price} - Old price: ${dictcoins[coin]} - Difference: ${difference} \033[0m")
+            "\033[92m" + f"{now} - {coin.replace('USDT', '')} - Current price: ${price} - Old price: ${dictcoins[coin]} - Difference: ${difference} \033[0m")
         if difference >= tweet_by_price_change:
             auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
             auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
             api = tweepy.API(auth)
             # Tweet the price change and round it to 2 decimals
-            api.update_status(f"{coin} price has increased by ${round(difference, 2)}! Current price: ${round(float(price), 2)}")
-            print("\033[94m" + f"{coin} price has increased by ${difference}! Current price: ${price} \033[0m")
-            dict = {coin: price}
-            dictcoins.update(dict)
+            try:
+                api.update_status(
+                    f"{coin.replace('USDT', '')} price has increased by ${round(difference, 2)}! Current price: ${round(float(price), 2)}")
+                print(
+                    "\033[94m" + f"{coin.replace('USDT', '')} price has increased by ${difference}! Current price: ${price} \033[0m")
+                dict = {coin: price}
+                dictcoins.update(dict)
+            except tweepy.TweepError as e:
+                if e.api_code == 187:
+                    print("\033[91m" + "Error: Duplicate tweet! \033[0m")
+                    continue
         elif difference <= -tweet_by_price_change:
             auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
             auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
             api = tweepy.API(auth)
             # Remove - from difference
             difference = float(difference * -1)
-            api.update_status(f"{coin} price has decreased by ${round(difference, 2)}! Current price: ${round(float(price), 2)}")
-            print("\033[94m" + f"{coin} price has decreased by ${difference}! Current price: ${price}  \033[0m")
-            dict = {coin: price}
-            dictcoins.update(dict)
+            try:
+                api.update_status(
+                    f"{coin.replace('USDT', '')} price has decreased by ${round(difference, 2)}! Current price: ${round(float(price), 2)}")
+                print(
+                    "\033[94m" + f"{coin.replace('USDT', '')} price has decreased by ${difference}! Current price: ${price}  \033[0m")
+                dict = {coin: price}
+                dictcoins.update(dict)
+            except tweepy.TweepError as e:
+                if e.api_code == 187:
+                    print("\033[91m" + "Error: Duplicate tweet! \033[0m")
+                    continue
 
     sleep(sleep_time)
