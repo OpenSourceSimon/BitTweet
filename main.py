@@ -12,7 +12,7 @@ sleep_time: int = 10
 tweet_by_price_change: int = 100
 
 # Set time for good morning tweet in 24-hour format
-time = "09:00"
+good_morning_tweet = "09:00"
 
 # Which coin to track. For example: BTCUSDT or ETHUSDT. !!Don't change the 0 in the end!! It's the starting price.
 dictcoins = {'BTCUSDT': 0, 'ETHUSDT': 0, 'BNBUSDT': 0, 'NEOUSDT': 0, 'BCCUSDT': 0, 'LTCUSDT': 0, 'ADAUSDT': 0,
@@ -46,7 +46,7 @@ for coin in dictcoins:
 
 print("\033[95m" + "The bot will check the prices every " + str(sleep_time) + " seconds \033[0m")
 print("\033[95m" + f"The bot will tweet if the price changes by ${tweet_by_price_change} or more \033[0m")
-print("\033[95m" + "The bot will tweet a good morning tweet at " + time + " \033[0m")
+print("\033[95m" + "The bot will tweet a good morning tweet at " + good_morning_tweet + " \033[0m")
 # Print a line in the console
 print("\033[95m" + "-------------------------------------------------------------------------------- \033[0m")
 
@@ -58,12 +58,27 @@ def job():
     auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
     auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
     api = tweepy.API(auth)
-    api.update_status("Good morning! The current prices are: $" + str(list(dictcoins.values())))
+    # Get a random quote from api.quotable.io
+    data = requests.get('https://api.quotable.io/random?maxLength=200')
+    json = data.json()
+    quote = json['content']
+    author = json['author']
+    try:
+        api.update_status('Good morning! The quote of the day is "' + quote + '" by ' + author)
+    except tweepy.TweepError as e:
+        if e.api_code == 187:
+            print("\033[91m" + "Error: Duplicate tweet! \033[0m")
+        elif e.api_code == 186:
+            print("\033[91m" + "Error: Tweet is too long! \033[0m")
+        else:
+            print("\033[91m" + "Error: Something went wrong! \033[0m")
+            print(e)
     print("\033[92m" + "Good morning tweet sent! \033[0m")
 
 
-schedule.every().day.at(time).do(job)
+schedule.every().day.at(good_morning_tweet).do(job)
 while True:
+    schedule.run_pending()
     print("\033[94m" + "Checking prices... \033[0m")
     for coin in dictcoins:
         try:
@@ -92,6 +107,13 @@ while True:
                 if e.api_code == 187:
                     print("\033[91m" + "Error: Duplicate tweet! \033[0m")
                     continue
+                elif e.api_code == 186:
+                    print("\033[91m" + "Error: Tweet is too long! \033[0m")
+                    continue
+                else:
+                    print("\033[91m" + "Error: Something went wrong! \033[0m")
+                    print(e)
+                    continue
         elif difference <= -tweet_by_price_change:
             auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
             auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
@@ -108,6 +130,13 @@ while True:
             except tweepy.TweepError as e:
                 if e.api_code == 187:
                     print("\033[91m" + "Error: Duplicate tweet! \033[0m")
+                    continue
+                elif e.api_code == 186:
+                    print("\033[91m" + "Error: Tweet is too long! \033[0m")
+                    continue
+                else:
+                    print("\033[91m" + "Error: Something went wrong! \033[0m")
+                    print(e)
                     continue
 
     sleep(sleep_time)
