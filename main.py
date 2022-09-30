@@ -8,8 +8,10 @@ import tweepy
 # Sleep time in seconds
 sleep_time: int = 10
 
-# Tweet by price change value
+# Tweet by price change value. It can also check by percentage change.
+# Note: it will first check the price change and then the percentage change.
 tweet_by_price_change: int = 100
+tweet_by_percent_change = 1
 
 # Set time for good morning tweet in 24-hour format
 good_morning_tweet = "09:00"
@@ -21,6 +23,14 @@ dictcoins = {'BTCUSDT': 0, 'ETHUSDT': 0, 'BNBUSDT': 0, 'NEOUSDT': 0, 'BCCUSDT': 
              'KDAUSDT': 0, 'STEEMUSDT': 0, 'NEXOUSDT': 0, 'BIFIUSDT': 0, 'ALPINEUSDT': 0,
              'ASTRUSDT': 0, 'WOOUSDT': 0, 'STGUSDT': 0, 'EPXUSDT': 0, 'ENJUSDT': 0, 'CELRUSDT': 0, 'FETUSDT': 0,
              'BATUSDT': 0, 'XMRUSDT': 0, 'LINKUSDT': 0}
+
+# Optional: send a tweet when the price is a certain value
+dictgoal = {'BTCUSDT': 50000, 'ETHUSDT': 3000, 'BNBUSDT': 500, 'NEOUSDT': 100, 'BCCUSDT': 500, 'LTCUSDT': 200, 'ADAUSDT': 5,
+            'EOSUSDT': 10, 'HOTUSDT': 1, 'OMGUSDT': 10, 'BNTUSDT': 1, 'GMTUSDT': 1, 'DASHUSDT': 100, 'ZECUSDT': 100,
+            'ONGUSDT': 1, 'NULSUSDT': 1, 'BTTCUSDT': 1, 'LOKAUSDT': 1, 'XNOUSDT': 1, 'TUSDT': 1, 'NBTUSDT': 1,
+            'KDAUSDT': 1, 'STEEMUSDT': 1, 'NEXOUSDT': 1, 'BIFIUSDT': 1, 'ALPINEUSDT': 1,
+            'ASTRUSDT': 1, 'WOOUSDT': 1, 'STGUSDT': 1, 'EPXUSDT': 1, 'ENJUSDT': 1, 'CELRUSDT': 1, 'FETUSDT': 1,
+            'BATUSDT': 1, 'XMRUSDT': 100, 'LINKUSDT': 10}
 
 # Consumer keys and access tokens, used for OAuth
 CONSUMER_KEY = 'XXXXXXXXXXXXXXXXXXXXXX'
@@ -81,6 +91,7 @@ while True:
     schedule.run_pending()
     print("\033[94m" + "Checking prices... \033[0m")
     for coin in dictcoins:
+        sleep(0.5)
         try:
             price = requests.get('https://api.binance.com/api/v3/ticker/price?symbol=' + coin).json()['price']
         except KeyError:
@@ -89,8 +100,9 @@ while True:
         now = datetime.datetime.now()
         now = now.strftime("%Y-%m-%d %H:%M:%S")
         difference = float(int(float(price)) - int(float(dictcoins[coin])))
+        difference_percent: float = float((float(price) - float(dictcoins[coin])) / float(dictcoins[coin]) * 100)
         print(
-            "\033[92m" + f"{now} - {coin.replace('USDT', '')} - Current price: ${price} - Old price: ${dictcoins[coin]} - Difference: ${difference} \033[0m")
+            "\033[92m" + f"{now} - {coin.replace('USDT', '')} - Current price: ${price} - Old price: ${dictcoins[coin]} - Difference: ${difference} - Difference percent: {difference_percent}% \033[0m")
         if difference >= tweet_by_price_change:
             auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
             auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
@@ -125,6 +137,50 @@ while True:
                     f"{coin.replace('USDT', '')} price has decreased by ${round(difference, 2)}! Current price: ${round(float(price), 2)}")
                 print(
                     "\033[94m" + f"{coin.replace('USDT', '')} price has decreased by ${difference}! Current price: ${price}  \033[0m")
+                dict = {coin: price}
+                dictcoins.update(dict)
+            except tweepy.TweepError as e:
+                if e.api_code == 187:
+                    print("\033[91m" + "Error: Duplicate tweet! \033[0m")
+                    continue
+                elif e.api_code == 186:
+                    print("\033[91m" + "Error: Tweet is too long! \033[0m")
+                    continue
+                else:
+                    print("\033[91m" + "Error: Something went wrong! \033[0m")
+                    print(e)
+                    continue
+        elif difference_percent >= tweet_by_percent_change:
+            auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+            auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
+            api = tweepy.API(auth)
+            try:
+                api.update_status(
+                    f"{coin.replace('USDT', '')} price has increased by {round(difference_percent, 2)}%! Current price: ${round(float(price), 2)}")
+                print(
+                    "\033[94m" + f"{coin.replace('USDT', '')} price has increased by {difference_percent}%! Current price: ${price} \033[0m")
+                dict = {coin: price}
+                dictcoins.update(dict)
+            except tweepy.TweepError as e:
+                if e.api_code == 187:
+                    print("\033[91m" + "Error: Duplicate tweet! \033[0m")
+                    continue
+                elif e.api_code == 186:
+                    print("\033[91m" + "Error: Tweet is too long! \033[0m")
+                    continue
+                else:
+                    print("\033[91m" + "Error: Something went wrong! \033[0m")
+                    print(e)
+                    continue
+        elif float(price) >= float(dictgoal[coin]):
+            auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+            auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
+            api = tweepy.API(auth)
+            try:
+                api.update_status(
+                    f"{coin.replace('USDT', '')} has reached its price goal of ${dictgoal[coin]}! Current price: ${round(float(price), 2)}")
+                print(
+                    "\033[94m" + f"{coin.replace('USDT', '')} has reached its price goal of ${dictgoal[coin]}! Current price: ${price} \033[0m")
                 dict = {coin: price}
                 dictcoins.update(dict)
             except tweepy.TweepError as e:
